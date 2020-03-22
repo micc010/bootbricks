@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.github.rogerli.system.organ.dao.OrganMapper">
+    <resultMap id="BaseResultMap" type="com.github.rogerli.system.organ.entity.Organ">
+        <id column="ID" property="id" jdbcType="VARCHAR"/>
+        <result column="NAME" property="name" jdbcType="VARCHAR"/>
+        <result column="CODE" property="code" jdbcType="VARCHAR"/>
+        <result column="SHORT_NAME" property="shortName" jdbcType="VARCHAR"/>
+        <result column="TYPE" property="type" jdbcType="VARCHAR"/>
+        <result column="PARENT_ID" property="parentId" jdbcType="VARCHAR"/>
+        <result column="PARENT_NAME" property="parentName" jdbcType="VARCHAR"/>
+        <result column="VALID" property="valid" jdbcType="INTEGER"/>
+        <result column="SORT_NUM" property="sortNum" jdbcType="INTEGER"/>
+        <result column="CHECKABLE" property="checkable" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        ID, NAME, CODE, SHORT_NAME, TYPE, PARENT_ID, PARENT_NAME, VALID, SORT_NUM, CHECKABLE
+    </sql>
+</mapper>

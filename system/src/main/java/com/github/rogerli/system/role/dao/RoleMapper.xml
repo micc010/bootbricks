@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.github.rogerli.system.role.dao.RoleMapper">
+    <resultMap id="BaseResultMap" type="com.github.rogerli.system.role.entity.Role">
+        <id column="ID" property="id" jdbcType="VARCHAR"/>
+        <result column="ROLE" property="role" jdbcType="VARCHAR"/>
+        <result column="ROLE_NAME" property="roleName" jdbcType="VARCHAR"/>
+        <result column="DESCRIPTIONS" property="descriptions" jdbcType="VARCHAR"/>
+        <result column="VALID" property="valid" jdbcType="INTEGER"/>
+        <result column="SORT_NUM" property="sortNum" jdbcType="INTEGER"/>
+        <result column="ORGAN_ID" property="organId" jdbcType="VARCHAR"/>
+        <result column="ORGAN_NAME" property="organName" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap id="PurResultMap" extends="BaseResultMap" type="com.github.rogerli.system.role.model.RoleData">
+        <collection property="purviewList" ofType="com.github.rogerli.system.purview.entity.Purview">
+            <id column="PID" property="id" jdbcType="VARCHAR"/>
+            <result column="PNAME" property="name" jdbcType="VARCHAR"/>
+            <result column="PLABEL" property="label" jdbcType="VARCHAR"/>
+            <result column="PTYPE" property="type" jdbcType="VARCHAR"/>
+            <result column="PURL" property="url" jdbcType="VARCHAR"/>
+            <result column="PVALID" property="valid" jdbcType="INTEGER"/>
+            <result column="PSORT_NUM" property="sortNum" jdbcType="INTEGER"/>
+            <result column="PPARENT_ID" property="parentId" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+    <sql id="Base_Column_List">
+        ID, ROLE, ROLE_NAME, DESCRIPTIONS, VALID, SORT_NUM, ORGAN_ID, ORGAN_NAME
+    </sql>
+    <sql id="Role_Column_List">
+        sr.ID, sr.ROLE, sr.ROLE_NAME, sr.DESCRIPTIONS, sr.VALID, sr.SORT_NUM, sr.ORGAN_ID, sr.ORGAN_NAME
+    </sql>
+    <!--插入角色与权限多对多关联表-->
+    <insert id="insertRolePurview" parameterType="com.github.rogerli.system.role.entity.RolePurview">
+        insert into sys_role_purview(role_id,purview_id)
+        values(#{roleId,jdbcType=VARCHAR},#{purviewId,jdbcType=VARCHAR})
+    </insert>
+    <!--根据角色ID删除所有权限-->
+    <delete id="deleteRolePurviewByKey" parameterType="string">
+        delete from sys_role_purview
+        where role_id = #{roleId,jdbcType=VARCHAR}
+    </delete>
+    <!--根据角色ID查询权限-->
+    <select id="findPurviewListByRole" resultMap="com.github.rogerli.system.purview.dao.PurviewMapper.BaseResultMap"
+            parameterType="string">
+        select
+        <include refid="com.github.rogerli.system.purview.dao.PurviewMapper.Base_Column_List"/>
+        from sys_purview
+        <trim prefix="where" prefixOverrides="and|or">
+            ID in (select rp.PURVIEW_ID from sys_role_purview rp where rp.ROLE_ID = #{id,jdbcType=VARCHAR})
+        </trim>
+    </select>
+    <!--根据角色ID查询角色（含权限）-->
+    <select id="findRoleDataByKey" resultMap="PurResultMap"
+            parameterType="string">
+        select <include refid="Role_Column_List"/>,
+                sp.ID PID, sp.NAME PNAME, sp.TYPE PTYPE, sp.URL PURL, sp.VALID PVALID, sp.SORT_NUM PSORT_NUM, sp.PARENT_ID PPARENT_ID
+        from sys_role sr
+        left join sys_role_purview rs
+        on sr.ID = rs.ROLE_ID
+        left join sys_purview sp
+        on rs.PURVIEW_ID = sp.ID
+        where sr.ID = #{id,jdbcType=VARCHAR}
+    </select>
+    <!--根据权限查询角色清单-->
+    <select id="findRoleListByPurview" resultMap="BaseResultMap"
+            parameterType="com.github.rogerli.system.purview.entity.Purview">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_role
+        <trim prefix="where" prefixOverrides="and|or">
+            ID in (
+            select rp.ROLE_ID
+            from sys_role_purview rp where
+            exists(
+            select 1 from sys_purview sp
+            <trim prefix="where" prefixOverrides="and|or">
+                and sp.id = rp.PURVIEW_ID
+                <if test="id != null">
+                    and sp.ID = #{id,jdbcType=VARCHAR}
+                </if>
+                <if test="url != null">
+                    and sp.URL = #{url,jdbcType=VARCHAR}
+                </if>
+            </trim>
+            )
+            )
+        </trim>
+    </select>
+</mapper>

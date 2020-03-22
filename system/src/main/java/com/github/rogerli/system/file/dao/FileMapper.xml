@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.rogerli.system.file.dao.FileMapper">
+    <resultMap id="BaseResultMap" type="com.github.rogerli.system.file.entity.File">
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="item_id" jdbcType="VARCHAR" property="itemId"/>
+        <result column="item_type" jdbcType="VARCHAR" property="itemType"/>
+        <result column="save_name" jdbcType="VARCHAR" property="saveName"/>
+        <result column="origin_name" jdbcType="VARCHAR" property="originName"/>
+        <result column="file_size" jdbcType="BIGINT" property="fileSize"/>
+        <result column="file_path" jdbcType="VARCHAR" property="filePath"/>
+        <result column="file_url" jdbcType="VARCHAR" property="fileUrl"/>
+        <result column="short_url" jdbcType="VARCHAR" property="shortUrl"/>
+        <result column="md5" jdbcType="VARCHAR" property="md5"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id,item_id,item_type,save_name,origin_name,file_size,file_path,file_url,short_url,md5,create_time,username
+    </sql>
+    <!--根据主键id更新文件-->
+    <update id="updateByItemId" parameterType="com.github.rogerli.system.file.model.FileItem">
+        update sys_file
+        <trim prefix="set" suffixOverrides=",">
+            <if test="itemId != null">
+                item_id = #{itemId,jdbcType=VARCHAR},
+            </if>
+            <if test="itemType != null">
+                item_type = #{itemType,jdbcType=VARCHAR},
+            </if>
+        </trim>
+        where id in
+        <foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+    <!--根据主键id删除文件-->
+    <delete id="deleteByItemId" parameterType="com.github.rogerli.system.file.model.FileItem">
+        delete from sys_file
+        where item_id in
+        <foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <!--根据idList删除-->
+    <delete id="deleteByIdList" parameterType="com.github.rogerli.system.file.model.FileItem">
+        delete from sys_file
+        where id in
+        <foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <!--根据条件查询文件-->
+    <select id="findByIdList" parameterType="com.github.rogerli.system.file.model.FileQuery"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_file
+        <foreach collection="idList" item="item" index="index" open="where id in (" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <!--根据MD5条件查询文件-->
+    <select id="findByMD5List" parameterType="com.github.rogerli.system.file.model.FileQuery"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_file
+        <foreach collection="idList" item="item" index="index" open="where md5 in (" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <!--根据item查询文件-->
+    <select id="findByItemList" parameterType="com.github.rogerli.system.file.model.FileItemQuery"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_file
+        where item_type = #{itemType,jdbcType=VARCHAR}
+        <foreach collection="itemList" item="item" index="index" open="and item_id in (" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+</mapper>
